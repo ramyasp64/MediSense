@@ -1,0 +1,72 @@
+{
+  "transfer_learning": {
+    "accuracy": 0.7468,
+    "sensitivity": 0.4632,
+    "specificity": 0.7626,
+    "f1_score": 0.1615,
+    "auroc": 0.746,
+    "false_negatives": 51,
+    "false_positives": 406,
+    "inference_latency_ms": 0.189,
+    "classification_report": "              precision    recall  f1-score   support\n\n      Normal       0.96      0.76      0.85      1710\n     Anomaly       0.10      0.46      0.16        95\n\n    accuracy                           0.75      1805\n   macro avg       0.53      0.61      0.51      1805\nweighted avg       0.92      0.75      0.81      1805\n"
+  },
+  "baseline": {
+    "accuracy": 0.6787,
+    "sensitivity": 0.0211,
+    "specificity": 0.7152,
+    "f1_score": 0.0068,
+    "auroc": 0.464
+  },
+  "improvement_pp": 6.81,
+  "mcnemars_test": {
+    "b01_transfer_wins": 241,
+    "b10_baseline_wins": 118,
+    "chi2_statistic": 41.459610027855156,
+    "p_value": 1.203315225239976e-10,
+    "significant": true,
+    "interpretation": "Transfer learning improvement is statistically significant (p<0.05)"
+  },
+  "data_efficiency": {
+    "fractions": [
+      0.1,
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "transfer_accuracies": [
+      0.821606648199446,
+      0.746814404432133,
+      0.6664819944598338,
+      0.6709141274238227,
+      0.6426592797783933
+    ],
+    "baseline_accuracies": [
+      0.7966759002770083,
+      0.7185595567867036,
+      0.6725761772853186,
+      0.7246537396121884,
+      0.6653739612188365
+    ],
+    "improvements_pp": [
+      2.49,
+      2.83,
+      -0.61,
+      -5.37,
+      -2.27
+    ],
+    "max_improvement_pp": 2.83,
+    "transfer_reaches_target_at": null,
+    "baseline_reaches_target_at": null,
+    "data_efficiency_gain": null,
+    "target_accuracy": 0.9,
+    "thesis_claim": "Target accuracy not reached within experiment range"
+  },
+  "thesis_targets_met": {
+    "patient_anomaly_accuracy_90pct": false,
+    "improvement_5pp": true,
+    "data_efficiency_50pct": false,
+    "latency_under_100ms": true,
+    "mcnemars_significant": true
+  }
+}

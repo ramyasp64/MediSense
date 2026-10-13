@@ -1,0 +1,9 @@
+{
+  "chronos_zero_shot": {
+    "auroc": 0.51688027085257,
+    "accuracy": 0.691533180778032,
+    "sensitivity": 0.12210526315789473,
+    "model": "amazon/chronos-t5-small",
+    "method": "prediction interval width (zero-shot, no fine-tuning)"
+  }
+}

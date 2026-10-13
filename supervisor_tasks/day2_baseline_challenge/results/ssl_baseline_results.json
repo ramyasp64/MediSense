@@ -1,0 +1,10 @@
+{
+  "ssl_medical": {
+    "auroc": 0.714310864881502,
+    "accuracy": 0.7354691075514874,
+    "sensitivity": 0.32421052631578945
+  },
+  "stock_pretrain_auroc": 0.616002286417799,
+  "bearing_pretrain_auroc": 0.746,
+  "baseline_auroc": 0.464
+}

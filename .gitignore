@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# Data — large files, never commit raw data
+data/raw/
+data/processed/
+
+# Model weights — large binary files
+experiments/models/*.pt
+experiments/models/*.pt.tmp
+*.pkl
+*.pth
+*.pt
+
+# Logs and run state
+experiments/run.log
+experiments/run.pid
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Local preparation documents — private, never push
+preparation/
+
+# Thesis drafts — large Word/PDF files
+*.docx
+*.pdf

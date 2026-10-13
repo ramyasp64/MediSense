@@ -1,0 +1,10 @@
+{
+  "stock_pretrain": {
+    "auroc": 0.616002286417799,
+    "accuracy": 0.7372631578947368,
+    "sensitivity": 0.4481203007518797
+  },
+  "bearing_pretrain_auroc": 0.746,
+  "baseline_auroc": 0.464,
+  "interpretation": "If stock AUROC << bearing AUROC: bearing data has domain-specific value. If stock AUROC \u2248 bearing AUROC: any periodic time series may suffice."
+}

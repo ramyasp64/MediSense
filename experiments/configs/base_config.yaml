@@ -1,0 +1,75 @@
+project: MediSense
+version: "1.0"
+
+# Reproducibility
+seed: 42
+
+# Data splits
+splits:
+  train: 0.60
+  val: 0.20
+  test: 0.20
+
+cross_validation:
+  n_folds: 5
+
+# Signal processing
+signal:
+  fs_medical: 125          # Hz — BIDMC/CapnoBase sampling rate
+  fs_industrial: 20480     # Hz — NASA Bearing sampling rate
+  window_size_sec: 10      # seconds per analysis window
+  overlap: 0.5             # 50% overlap between windows
+
+  bandpass:
+    hr_low: 0.5
+    hr_high: 4.0           # 0.5–4 Hz for heart rate (30–240 BPM)
+    rr_low: 0.1
+    rr_high: 0.5           # 0.1–0.5 Hz for respiratory rate
+
+  kalman:
+    process_noise: 1e-5
+    measurement_noise: 1e-3
+
+# Model
+model:
+  architecture: autoencoder
+  input_dim: 128           # feature vector size
+  hidden_dims: [64, 32, 16]
+  latent_dim: 8
+  dropout: 0.2
+  activation: relu
+
+# Training
+training:
+  epochs_pretrain: 100     # industrial pre-training
+  epochs_finetune: 50      # medical fine-tuning
+  batch_size: 64
+  learning_rate: 1e-3
+  lr_scheduler: cosine
+  early_stopping_patience: 10
+  freeze_layers: 2         # freeze first N encoder layers during fine-tuning
+
+# Anomaly detection thresholds
+detection:
+  sensor_malfunction:
+    threshold_percentile: 95   # trained on industrial normal data
+    target_accuracy: 0.95
+  patient_anomaly:
+    threshold_percentile: 90   # trained on medical normal data
+    target_accuracy: 0.90
+
+# Target metrics (thesis)
+targets:
+  patient_anomaly_accuracy: 0.90
+  transfer_improvement_over_baseline: 0.05   # ≥5 percentage points
+  data_efficiency_fraction: 0.50             # reach 90% with ≤50% of baseline data
+  sensor_malfunction_accuracy: 0.95
+  inference_latency_ms: 100
+
+# Paths
+paths:
+  raw_data: data/raw
+  processed_data: data/processed
+  models: experiments/models
+  results: experiments/results
+  figures: thesis_figures

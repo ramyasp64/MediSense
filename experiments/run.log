@@ -1,0 +1,420 @@
+
+============================================================
+STEP 1: Loading datasets
+============================================================
+[BIDMC] Loaded 5035 windows from 53/53 records (4750 normal, 285 anomaly)
+[CapnoBase] Loaded 3990 windows from 42/42 records (3800 normal, 190 anomaly)
+[NASA Bearing] Loaded 175556 windows (149214 normal, 26342 anomaly)
+
+============================================================
+STEP 2: Patient-level 60/20/20 split
+============================================================
+  Patients — Train:57  Val:19  Test:19
+  Windows  — Train:5415 Val:1805 Test:1805
+  *** Test set LOCKED until Step 6 ***
+
+============================================================
+STEP 3: Resample all windows → 1250 samples, z-score normalise
+============================================================
+  Train normal:   torch.Size([5225, 1, 1250])
+  Train anomaly:  torch.Size([190, 1, 1250])  ← used for contrastive loss
+  Val:            torch.Size([1805, 1, 1250])  (10.5% anomaly)
+  Test:           torch.Size([1805, 1, 1250]) (5.3% anomaly)
+  Industrial (NASA Bearing): 8000 train / 2000 val
+
+  Device: mps
+
+============================================================
+STEP 4: Industrial pre-training on NASA Bearing vibration data
+============================================================
+  [SKIP] cnn_pretrain.pt already exists — loading saved weights.
+
+============================================================
+STEP 5: Medical fine-tuning (transfer learning)
+============================================================
+  Frozen encoder params: 4/38
+  Training normal: 5225 | anomaly: 190 windows
+  [CONTRAST-T] Epoch   1/80 | train=2.2555 val=0.4395 lr=0.00002
+  [CONTRAST-T] Epoch  10/80 | train=0.0552 val=0.0449 lr=0.00005
+  [CONTRAST-T] Epoch  20/80 | train=0.0272 val=0.0212 lr=0.00005
+  [CONTRAST-T] Epoch  30/80 | train=0.0186 val=0.0179 lr=0.00004
+  [CONTRAST-T] Epoch  40/80 | train=0.0145 val=0.0150 lr=0.00003
+  [CONTRAST-T] Epoch  50/80 | train=0.0121 val=0.0143 lr=0.00002
+  [CONTRAST-T] Epoch  60/80 | train=0.0105 val=0.0126 lr=0.00001
+  [CONTRAST-T] Epoch  70/80 | train=0.0095 val=0.0114 lr=0.00000
+  [CONTRAST-T] Epoch  80/80 | train=0.0092 val=0.0126 lr=0.00000
+  [CONTRAST-T] Best val=0.0114  (535.2s)
+
+============================================================
+STEP 6: Baseline — train from scratch on medical data only (contrastive)
+============================================================
+  [BASE-PRETRAIN] Epoch   1/60 | train=2.0959 val=0.4839 lr=0.00006
+  [BASE-PRETRAIN] Epoch  10/60 | train=0.0226 val=0.0117 lr=0.00030
+  [BASE-PRETRAIN] Epoch  20/60 | train=0.0137 val=0.0068 lr=0.00027
+  [BASE-PRETRAIN] Epoch  30/60 | train=0.0097 val=0.0043 lr=0.00020
+  [BASE-PRETRAIN] Epoch  40/60 | train=0.0085 val=0.0034 lr=0.00010
+  [BASE-PRETRAIN] Epoch  50/60 | train=0.0071 val=0.0025 lr=0.00003
+  [BASE-PRETRAIN] Epoch  60/60 | train=0.0066 val=0.0021 lr=0.00000
+  [BASE-PRETRAIN] Best val=0.0021  (269.5s)
+  [CONTRAST-B] Epoch   1/60 | train=0.4370 val=0.0145 lr=0.00002
+  [CONTRAST-B] Epoch  10/60 | train=0.0136 val=0.0114 lr=0.00005
+  [CONTRAST-B] Epoch  20/60 | train=0.0107 val=0.0139 lr=0.00004
+  [CONTRAST-B] Early stop at epoch 23
+  [CONTRAST-B] Best val=0.0101  (160.5s)
+
+============================================================
+STEP 7: Final evaluation — LOCKED test set (first use)
+============================================================
+  [Mahalanobis] Fitting normal cluster in latent space...
+  [Mahalanobis] Val sensitivity=0.142 F1=0.1171 at p85 threshold=4130.9976
+  [Mahalanobis] Fitting normal cluster in latent space...
+  [Mahalanobis] Val sensitivity=0.105 F1=0.0868 at p85 threshold=190.6927
+
+=======================================================
+  Results: Transfer Learning (NASA Bearing → Medical PPG)
+  Accuracy    : 0.7468  (target ≥0.90)
+  Sensitivity : 0.4632  (catch emergencies)
+  Specificity : 0.7626  (avoid alert fatigue)
+  F1-Score    : 0.1615
+  AUROC       : 0.7460
+  False Neg   : 51  (missed emergencies)
+  False Pos   : 406  (false alarms)
+  Latency     : 0.189 ms/window  (target <100ms)
+=======================================================
+
+=======================================================
+  Results: Baseline (medical-only training)
+  Accuracy    : 0.6787  (target ≥0.90)
+  Sensitivity : 0.0211  (catch emergencies)
+  Specificity : 0.7152  (avoid alert fatigue)
+  F1-Score    : 0.0068
+  AUROC       : 0.4640
+  False Neg   : 93  (missed emergencies)
+  False Pos   : 487  (false alarms)
+  Latency     : 0.171 ms/window  (target <100ms)
+=======================================================
+
+============================================================
+STEP 8: McNemar's test — statistical significance
+============================================================
+
+[McNemar's Test] χ²=41.4596, p=0.0000 — Transfer learning improvement is statistically significant (p<0.05)
+
+============================================================
+STEP 9: Data efficiency — accuracy vs. training fraction
+============================================================
+
+  Fraction 10% (522 windows)
+  [T-10%] Epoch   1/80 | train=0.4453 val=0.4148 lr=0.00004
+  [T-10%] Epoch  10/80 | train=0.0871 val=0.2495 lr=0.00010
+  [T-10%] Epoch  20/80 | train=0.0400 val=0.1954 lr=0.00009
+  [T-10%] Epoch  30/80 | train=0.0265 val=0.1514 lr=0.00008
+  [T-10%] Epoch  40/80 | train=0.0206 val=0.1136 lr=0.00006
+  [T-10%] Epoch  50/80 | train=0.0174 val=0.0956 lr=0.00003
+  [T-10%] Epoch  60/80 | train=0.0152 val=0.0884 lr=0.00002
+  [T-10%] Epoch  70/80 | train=0.0148 val=0.0836 lr=0.00000
+  [T-10%] Epoch  80/80 | train=0.0142 val=0.0838 lr=0.00000
+  [T-10%] Best val=0.0836  (61.1s)
+  [Mahalanobis] Fitting normal cluster in latent space...
+  [Mahalanobis] Val sensitivity=0.021 F1=0.0174 at p85 threshold=1281.3344
+
+=======================================================
+  Results: Transfer 10%
+  Accuracy    : 0.8216  (target ≥0.90)
+  Sensitivity : 0.0000  (catch emergencies)
+  Specificity : 0.8673  (avoid alert fatigue)
+  F1-Score    : 0.0000
+  AUROC       : 0.4137
+  False Neg   : 95  (missed emergencies)
+  False Pos   : 227  (false alarms)
+  Latency     : 0.171 ms/window  (target <100ms)
+=======================================================
+  [B-10%] Epoch   1/80 | train=2.6198 val=0.4852 lr=0.00006
+  [B-10%] Epoch  10/80 | train=0.2068 val=0.2435 lr=0.00030
+  [B-10%] Epoch  20/80 | train=0.0367 val=0.1204 lr=0.00029
+  [B-10%] Epoch  30/80 | train=0.0247 val=0.0777 lr=0.00024
+  [B-10%] Epoch  40/80 | train=0.0201 val=0.0703 lr=0.00018
+  [B-10%] Epoch  50/80 | train=0.0167 val=0.0646 lr=0.00012
+  [B-10%] Epoch  60/80 | train=0.0162 val=0.0631 lr=0.00006
+  [B-10%] Epoch  70/80 | train=0.0154 val=0.0634 lr=0.00001
+  [B-10%] Epoch  80/80 | train=0.0154 val=0.0628 lr=0.00000
+  [B-10%] Best val=0.0620  (64.7s)
+  [Mahalanobis] Fitting normal cluster in latent space...
+  [Mahalanobis] Val sensitivity=0.053 F1=0.0434 at p85 threshold=342.0404
+
+=======================================================
+  Results: Baseline 10%
+  Accuracy    : 0.7967  (target ≥0.90)
+  Sensitivity : 0.0000  (catch emergencies)
+  Specificity : 0.8409  (avoid alert fatigue)
+  F1-Score    : 0.0000
+  AUROC       : 0.3933
+  False Neg   : 95  (missed emergencies)
+  False Pos   : 272  (false alarms)
+  Latency     : 0.176 ms/window  (target <100ms)
+=======================================================
+
+  Fraction 25% (1306 windows)
+  [T-25%] Epoch   1/80 | train=0.4045 val=0.4051 lr=0.00004
+  [T-25%] Epoch  10/80 | train=0.0408 val=0.1386 lr=0.00010
+  [T-25%] Epoch  20/80 | train=0.0188 val=0.0548 lr=0.00009
+  [T-25%] Epoch  30/80 | train=0.0135 val=0.0463 lr=0.00008
+  [T-25%] Epoch  40/80 | train=0.0125 val=0.0420 lr=0.00006
+  [T-25%] Epoch  50/80 | train=0.0106 val=0.0387 lr=0.00003
+  [T-25%] Epoch  60/80 | train=0.0097 val=0.0356 lr=0.00002
+  [T-25%] Epoch  70/80 | train=0.0090 val=0.0341 lr=0.00000
+  [T-25%] Epoch  80/80 | train=0.0087 val=0.0342 lr=0.00000
+  [T-25%] Best val=0.0340  (119.7s)
+  [Mahalanobis] Fitting normal cluster in latent space...
+  [Mahalanobis] Val sensitivity=0.026 F1=0.0217 at p85 threshold=710.6520
+
+=======================================================
+  Results: Transfer 25%
+  Accuracy    : 0.7468  (target ≥0.90)
+  Sensitivity : 0.0000  (catch emergencies)
+  Specificity : 0.7883  (avoid alert fatigue)
+  F1-Score    : 0.0000
+  AUROC       : 0.2057
+  False Neg   : 95  (missed emergencies)
+  False Pos   : 362  (false alarms)
+  Latency     : 0.171 ms/window  (target <100ms)
+=======================================================
+  [B-25%] Epoch   1/80 | train=2.9118 val=0.8402 lr=0.00006
+  [B-25%] Epoch  10/80 | train=0.0555 val=0.0961 lr=0.00030
+  [B-25%] Epoch  20/80 | train=0.0228 val=0.0481 lr=0.00029
+  [B-25%] Epoch  30/80 | train=0.0172 val=0.0377 lr=0.00024
+  [B-25%] Epoch  40/80 | train=0.0138 val=0.0301 lr=0.00018
+  [B-25%] Epoch  50/80 | train=0.0122 val=0.0263 lr=0.00012
+  [B-25%] Epoch  60/80 | train=0.0111 val=0.0237 lr=0.00006
+  [B-25%] Epoch  70/80 | train=0.0107 val=0.0227 lr=0.00001
+  [B-25%] Epoch  80/80 | train=0.0104 val=0.0229 lr=0.00000
+  [B-25%] Best val=0.0220  (230.6s)
+  [Mahalanobis] Fitting normal cluster in latent space...
+  [Mahalanobis] Val sensitivity=0.058 F1=0.0477 at p85 threshold=245.7527
+
+=======================================================
+  Results: Baseline 25%
+  Accuracy    : 0.7186  (target ≥0.90)
+  Sensitivity : 0.0000  (catch emergencies)
+  Specificity : 0.7585  (avoid alert fatigue)
+  F1-Score    : 0.0000
+  AUROC       : 0.1814
+  False Neg   : 95  (missed emergencies)
+  False Pos   : 413  (false alarms)
+  Latency     : 0.299 ms/window  (target <100ms)
+=======================================================
+
+  Fraction 50% (2612 windows)
+  [T-50%] Epoch   1/80 | train=0.3638 val=0.3967 lr=0.00004
+  [T-50%] Epoch  10/80 | train=0.0271 val=0.0441 lr=0.00010
+  [T-50%] Epoch  20/80 | train=0.0118 val=0.0139 lr=0.00009
+  [T-50%] Epoch  30/80 | train=0.0084 val=0.0086 lr=0.00008
+  [T-50%] Epoch  40/80 | train=0.0077 val=0.0066 lr=0.00006
+  [T-50%] Epoch  50/80 | train=0.0068 val=0.0059 lr=0.00003
+  [T-50%] Epoch  60/80 | train=0.0060 val=0.0049 lr=0.00002
+  [T-50%] Epoch  70/80 | train=0.0058 val=0.0046 lr=0.00000
+  [T-50%] Epoch  80/80 | train=0.0056 val=0.0043 lr=0.00000
+  [T-50%] Best val=0.0043  (290.7s)
+  [Mahalanobis] Fitting normal cluster in latent space...
+  [Mahalanobis] Val sensitivity=0.026 F1=0.0217 at p85 threshold=666.8358
+
+=======================================================
+  Results: Transfer 50%
+  Accuracy    : 0.6665  (target ≥0.90)
+  Sensitivity : 0.0000  (catch emergencies)
+  Specificity : 0.7035  (avoid alert fatigue)
+  F1-Score    : 0.0000
+  AUROC       : 0.1204
+  False Neg   : 95  (missed emergencies)
+  False Pos   : 507  (false alarms)
+  Latency     : 0.213 ms/window  (target <100ms)
+=======================================================
+  [B-50%] Epoch   1/80 | train=2.8435 val=0.6212 lr=0.00006
+  [B-50%] Epoch  10/80 | train=0.0295 val=0.0298 lr=0.00030
+  [B-50%] Epoch  20/80 | train=0.0170 val=0.0236 lr=0.00029
+  [B-50%] Epoch  30/80 | train=0.0125 val=0.0103 lr=0.00024
+  [B-50%] Epoch  40/80 | train=0.0103 val=0.0091 lr=0.00018
+  [B-50%] Epoch  50/80 | train=0.0092 val=0.0075 lr=0.00012
+  [B-50%] Epoch  60/80 | train=0.0089 val=0.0073 lr=0.00006
+  [B-50%] Epoch  70/80 | train=0.0080 val=0.0067 lr=0.00001
+  [B-50%] Epoch  80/80 | train=0.0082 val=0.0066 lr=0.00000
+  [B-50%] Best val=0.0064  (207.6s)
+  [Mahalanobis] Fitting normal cluster in latent space...
+  [Mahalanobis] Val sensitivity=0.100 F1=0.0824 at p85 threshold=229.1171
+
+=======================================================
+  Results: Baseline 50%
+  Accuracy    : 0.6726  (target ≥0.90)
+  Sensitivity : 0.0000  (catch emergencies)
+  Specificity : 0.7099  (avoid alert fatigue)
+  F1-Score    : 0.0000
+  AUROC       : 0.1269
+  False Neg   : 95  (missed emergencies)
+  False Pos   : 496  (false alarms)
+  Latency     : 0.196 ms/window  (target <100ms)
+=======================================================
+
+  Fraction 75% (3918 windows)
+  [T-75%] Epoch   1/80 | train=0.3845 val=0.3939 lr=0.00004
+  [T-75%] Epoch  10/80 | train=0.0179 val=0.0129 lr=0.00010
+  [T-75%] Epoch  20/80 | train=0.0094 val=0.0055 lr=0.00009
+  [T-75%] Epoch  30/80 | train=0.0079 val=0.0041 lr=0.00008
+  [T-75%] Epoch  40/80 | train=0.0069 val=0.0033 lr=0.00006
+  [T-75%] Epoch  50/80 | train=0.0060 val=0.0026 lr=0.00003
+  [T-75%] Epoch  60/80 | train=0.0054 val=0.0024 lr=0.00002
+  [T-75%] Epoch  70/80 | train=0.0050 val=0.0020 lr=0.00000
+  [T-75%] Epoch  80/80 | train=0.0047 val=0.0018 lr=0.00000
+  [T-75%] Best val=0.0017  (290.1s)
+  [Mahalanobis] Fitting normal cluster in latent space...
+  [Mahalanobis] Val sensitivity=0.016 F1=0.0130 at p85 threshold=720.0447
+
+=======================================================
+  Results: Transfer 75%
+  Accuracy    : 0.6709  (target ≥0.90)
+  Sensitivity : 0.0000  (catch emergencies)
+  Specificity : 0.7082  (avoid alert fatigue)
+  F1-Score    : 0.0000
+  AUROC       : 0.1290
+  False Neg   : 95  (missed emergencies)
+  False Pos   : 499  (false alarms)
+  Latency     : 0.212 ms/window  (target <100ms)
+=======================================================
+  [B-75%] Epoch   1/80 | train=2.2046 val=0.5562 lr=0.00006
+  [B-75%] Epoch  10/80 | train=0.0264 val=0.0188 lr=0.00030
+  [B-75%] Epoch  20/80 | train=0.0152 val=0.0090 lr=0.00029
+  [B-75%] Epoch  30/80 | train=0.0114 val=0.0064 lr=0.00024
+  [B-75%] Epoch  40/80 | train=0.0093 val=0.0049 lr=0.00018
+  [B-75%] Epoch  50/80 | train=0.0082 val=0.0041 lr=0.00012
+  [B-75%] Epoch  60/80 | train=0.0072 val=0.0034 lr=0.00006
+  [B-75%] Epoch  70/80 | train=0.0067 val=0.0030 lr=0.00001
+  [B-75%] Epoch  80/80 | train=0.0067 val=0.0028 lr=0.00000
+  [B-75%] Best val=0.0027  (293.0s)
+  [Mahalanobis] Fitting normal cluster in latent space...
+  [Mahalanobis] Val sensitivity=0.021 F1=0.0174 at p85 threshold=220.8349
+
+=======================================================
+  Results: Baseline 75%
+  Accuracy    : 0.7247  (target ≥0.90)
+  Sensitivity : 0.0000  (catch emergencies)
+  Specificity : 0.7649  (avoid alert fatigue)
+  F1-Score    : 0.0000
+  AUROC       : 0.1438
+  False Neg   : 95  (missed emergencies)
+  False Pos   : 402  (false alarms)
+  Latency     : 0.214 ms/window  (target <100ms)
+=======================================================
+
+  Fraction 100% (5225 windows)
+  [T-100%] Epoch   1/80 | train=0.4199 val=0.3835 lr=0.00004
+  [T-100%] Epoch  10/80 | train=0.0149 val=0.0102 lr=0.00010
+  [T-100%] Epoch  20/80 | train=0.0091 val=0.0047 lr=0.00009
+  [T-100%] Epoch  30/80 | train=0.0075 val=0.0038 lr=0.00008
+  [T-100%] Epoch  40/80 | train=0.0067 val=0.0028 lr=0.00006
+  [T-100%] Epoch  50/80 | train=0.0059 val=0.0027 lr=0.00003
+  [T-100%] Epoch  60/80 | train=0.0052 val=0.0025 lr=0.00002
+  [T-100%] Epoch  70/80 | train=0.0048 val=0.0018 lr=0.00000
+  [T-100%] Epoch  80/80 | train=0.0047 val=0.0017 lr=0.00000
+  [T-100%] Best val=0.0017  (1256.3s)
+  [Mahalanobis] Fitting normal cluster in latent space...
+  [Mahalanobis] Val sensitivity=0.011 F1=0.0087 at p85 threshold=789.6162
+
+=======================================================
+  Results: Transfer 100%
+  Accuracy    : 0.6427  (target ≥0.90)
+  Sensitivity : 0.0000  (catch emergencies)
+  Specificity : 0.6784  (avoid alert fatigue)
+  F1-Score    : 0.0000
+  AUROC       : 0.1593
+  False Neg   : 95  (missed emergencies)
+  False Pos   : 550  (false alarms)
+  Latency     : 0.229 ms/window  (target <100ms)
+=======================================================
+  [B-100%] Epoch   1/80 | train=2.0151 val=0.5357 lr=0.00006
+  [B-100%] Epoch  10/80 | train=0.0273 val=0.0130 lr=0.00030
+  [B-100%] Epoch  20/80 | train=0.0143 val=0.0069 lr=0.00029
+  [B-100%] Epoch  30/80 | train=0.0108 val=0.0047 lr=0.00024
+  [B-100%] Epoch  40/80 | train=0.0093 val=0.0043 lr=0.00018
+  [B-100%] Epoch  50/80 | train=0.0079 val=0.0031 lr=0.00012
+  [B-100%] Epoch  60/80 | train=0.0070 val=0.0027 lr=0.00006
+  [B-100%] Epoch  70/80 | train=0.0064 val=0.0020 lr=0.00001
+  [B-100%] Epoch  80/80 | train=0.0061 val=0.0019 lr=0.00000
+  [B-100%] Best val=0.0019  (412.3s)
+  [Mahalanobis] Fitting normal cluster in latent space...
+  [Mahalanobis] Val sensitivity=0.037 F1=0.0304 at p85 threshold=223.0777
+
+=======================================================
+  Results: Baseline 100%
+  Accuracy    : 0.6654  (target ≥0.90)
+  Sensitivity : 0.0000  (catch emergencies)
+  Specificity : 0.7023  (avoid alert fatigue)
+  F1-Score    : 0.0000
+  AUROC       : 0.1711
+  False Neg   : 95  (missed emergencies)
+  False Pos   : 509  (false alarms)
+  Latency     : 0.890 ms/window  (target <100ms)
+=======================================================
+
+[Data Efficiency] Target accuracy not reached within experiment range
+
+============================================================
+STEP 10: Clinical alert generation on real patient windows
+============================================================
+
+  [bidmc06] HR=82 BPM RR=20/min | Truth:NORMAL | Score:5199.0430
+  
+⚠ [YELLOW] Warning: RR 20/min — elevated breathing rate
+   RR 20/min — elevated breathing rate
+   Action: Monitor closely. Check for fever or respiratory infection.
+
+  [bidmc06] HR=82 BPM RR=20/min | Truth:NORMAL | Score:9539.3096
+  
+⚠ [YELLOW] Equipment Problem Detected
+   Sensor readings appear unreliable. Possible causes: sensor detached, obscured, or malfunctioning.
+   Action: Check sensor placement. Clean sensor contact area. Reattach and wait 30 seconds for stable readings.
+
+  [bidmc06] HR=82 BPM RR=20/min | Truth:NORMAL | Score:5063.2690
+  
+⚠ [YELLOW] Warning: RR 20/min — elevated breathing rate
+   RR 20/min — elevated breathing rate
+   Action: Monitor closely. Check for fever or respiratory infection.
+
+  [bidmc06] HR=82 BPM RR=20/min | Truth:NORMAL | Score:6508.1172
+  
+⚠ [YELLOW] Equipment Problem Detected
+   Sensor readings appear unreliable. Possible causes: sensor detached, obscured, or malfunctioning.
+   Action: Check sensor placement. Clean sensor contact area. Reattach and wait 30 seconds for stable readings.
+
+  [bidmc06] HR=82 BPM RR=20/min | Truth:NORMAL | Score:4796.0107
+  
+⚠ [YELLOW] Warning: RR 20/min — elevated breathing rate
+   RR 20/min — elevated breathing rate
+   Action: Monitor closely. Check for fever or respiratory infection.
+
+  [bidmc06] HR=82 BPM RR=20/min | Truth:NORMAL | Score:3941.3467
+  
+✓ [GREEN] Vital Signs Normal
+   All monitored parameters within normal range.
+   Action: Continue monitoring. Check again in 15 minutes.
+
+
+============================================================
+EXPERIMENT COMPLETE — CNN RESULTS
+============================================================
+
+  Transfer accuracy  : 0.7468
+  Baseline accuracy  : 0.6787
+  Improvement        : +6.81 pp
+  Transfer AUROC     : 0.7460
+  Sensitivity        : 0.4632
+  Latency            : 0.189 ms/window
+  McNemar p          : 0.0000
+  Data efficiency    : None% less data needed
+
+  THESIS TARGETS:
+    [NOT MET] patient anomaly accuracy 90pct
+    [MET    ] improvement 5pp
+    [NOT MET] data efficiency 50pct
+    [MET    ] latency under 100ms
+    [MET    ] mcnemars significant
+
+  Results → experiments/results/cnn_experiment_results.json

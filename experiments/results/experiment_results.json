@@ -1,0 +1,71 @@
+{
+  "transfer_learning": {
+    "accuracy": 0.8853,
+    "sensitivity": 0.0737,
+    "specificity": 0.9304,
+    "f1_score": 0.0633,
+    "auroc": 0.683,
+    "false_negatives": 88,
+    "false_positives": 119,
+    "inference_latency_ms": 0.264,
+    "classification_report": "              precision    recall  f1-score   support\n\n      Normal       0.95      0.93      0.94      1710\n     Anomaly       0.06      0.07      0.06        95\n\n    accuracy                           0.89      1805\n   macro avg       0.50      0.50      0.50      1805\nweighted avg       0.90      0.89      0.89      1805\n"
+  },
+  "baseline": {
+    "accuracy": 0.8787,
+    "sensitivity": 0.0737,
+    "specificity": 0.9234,
+    "auroc": 0.7273
+  },
+  "improvement_pp": 0.66,
+  "mcnemars_test": {
+    "b01_transfer_wins": 35,
+    "b10_baseline_wins": 23,
+    "chi2_statistic": 2.086206896551724,
+    "p_value": 0.1486347107477688,
+    "significant": false,
+    "interpretation": "Not significant (p=0.1486)"
+  },
+  "data_efficiency": {
+    "fractions": [
+      0.1,
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "transfer_accuracies": [
+      0.8764542936288089,
+      0.8664819944598338,
+      0.8681440443213296,
+      0.8803324099722992,
+      0.8914127423822714
+    ],
+    "baseline_accuracies": [
+      0.8803324099722992,
+      0.8759002770083103,
+      0.8770083102493075,
+      0.8786703601108034,
+      0.8925207756232687
+    ],
+    "improvements_pp": [
+      -0.39,
+      -0.94,
+      -0.89,
+      0.17,
+      -0.11
+    ],
+    "max_improvement_pp": 0.17,
+    "transfer_reaches_target_at": null,
+    "baseline_reaches_target_at": null,
+    "data_efficiency_gain": null,
+    "target_accuracy": 0.9,
+    "thesis_claim": "Target accuracy not reached within experiment range"
+  },
+  "thesis_targets_met": {
+    "patient_anomaly_accuracy_90pct": false,
+    "improvement_5pp": false,
+    "data_efficiency_50pct": false,
+    "latency_under_100ms": true,
+    "mcnemars_significant": false
+  }
+}

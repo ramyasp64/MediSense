@@ -1,14 +1,14 @@
 # Day 1: Signal Visualization and Literature Gap Analysis
 
 **Date:** September 2026
-**Assigned by:** Dr. Anselm von Gladiß, University of Koblenz
+**Assigned by:** Thesis Supervisor, University of Koblenz
 **Status:** Completed and sent via email
 
 ---
 
 ## What was asked
 
-Dr. von Gladiß assigned two tasks to establish the research foundation:
+My supervisor assigned two tasks to establish the research foundation:
 
 **Task 1: Signal Visualization.** Generate figures from real data showing that NASA bearing
 vibration signals and medical PPG biosignals share structural similarity, justifying the
@@ -111,7 +111,7 @@ MediSense is the first work to:
 
 ---
 
-## Email sent to Dr. von Gladiß
+## Email sent to supervisor
 
 A single consolidated email was sent with all six figures attached and a written summary of
 the literature gap analysis, establishing the structural similarity argument and the novelty

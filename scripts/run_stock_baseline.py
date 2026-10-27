@@ -1,7 +1,7 @@
 """
 Stock Prices Baseline Experiment
 =================================
-Prof. von Gladiß's challenge: "Does the model learn something useful from
+Supervisor challenge: "Does the model learn something useful from
 bearing data specifically, or does it just learn to handle time series data?"
 
 This script pretrains the SAME CNN autoencoder on stock-like time series

@@ -1,7 +1,7 @@
 # Day 2: Baseline Challenge - Proving Bearing Pretraining Has Domain-Specific Value
 
 **Date:** October 2026
-**Assigned by:** Dr. Anselm von Gladiß, University of Koblenz
+**Assigned by:** Thesis Supervisor, University of Koblenz
 **Status:** Completed. Consolidated email sent with all results.
 
 ---
@@ -27,7 +27,7 @@ deployment at every rural community hospital uses the same fine-tuned model.
 
 ## The Challenge
 
-Dr. von Gladiß requested comparison of bearing pretraining against three baselines:
+My supervisor requested comparison of bearing pretraining against three baselines:
 (1) stock prices as an irrelevant domain, (2) self-supervised learning on the medical data
 itself, and (3) a time-series foundation model.
 
@@ -176,7 +176,7 @@ day2_baseline_challenge/
 
 ---
 
-## Email sent to Dr. von Gladiß
+## Email sent to supervisor
 
 A single consolidated email was sent after all four experiments completed, containing the full
 comparison table, the three-component decomposition, the theoretical argument, and next steps.

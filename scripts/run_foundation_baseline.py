@@ -1,7 +1,7 @@
 """
 Time-Series Foundation Model Baseline — MediSense
 ===================================================
-Prof. von Gladiß baseline #3: Chronos (Amazon), a foundation model
+Supervisor baseline #3: Chronos (Amazon), a foundation model
 pretrained on millions of diverse time series from every domain.
 
 What Chronos is:

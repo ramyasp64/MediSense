@@ -1,7 +1,7 @@
 """
 Self-Supervised Baseline — MediSense
 =====================================
-Prof. von Gladiß baseline #2: Self-supervised pretraining on the medical
+Supervisor baseline #2: Self-supervised pretraining on the medical
 data itself (no external source, no labels).
 
 Method: Masked Time-Series Autoencoder (MTSA)
